@@ -14,7 +14,6 @@ const Register = () => {
     if (name.length == 0 || email.length == 0 || password.length == 0) {
       return console.log("Fill all input");
     }
-    // console.log(newUser);
     try {
       const req = await axios.post("http://localhost:3000/api/users/", {
         name,

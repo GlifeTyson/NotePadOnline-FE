@@ -1,35 +1,34 @@
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { useAuth } from "../context/authContext";
-
+import Cookies from "js-cookie";
 const Navbar = () => {
-  const navigate = useRouter();
-  const { user, login, logout } = useAuth();
+  const { user, logout } = useAuth();
+  let email = Cookies.get("email-login");
   const handleLogout = () => {
     logout();
   };
-  useEffect(() => {
-    if (!user) {
-      navigate.push("/login");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
   return (
     <div className="flex w-full h-10 bg-[#4682b4] text-white justify-between px-10 items-center">
-      <div className="">NotePadOnline</div>
-      <div className="">
+      <div>
+        <a href="/">NotePadOnline</a>
+      </div>
+      <div>
         <ul className="flex justify-center gap-8">
-          <li>Made from scratch by Tyson</li>
           {user ? (
             <>
               <li>Email: {user}</li>
-              <button onClick={() => handleLogout()}>Log Out</button>
+              <li>
+                <button onClick={() => handleLogout()}>Log Out</button>
+              </li>
             </>
           ) : (
-            <li>
-              <Link href={"/login"}>Login</Link>
-            </li>
+            <>
+              <li>Please login</li>
+              <li>
+                <Link href={"/login"}>Login</Link>
+              </li>
+            </>
           )}
         </ul>
       </div>

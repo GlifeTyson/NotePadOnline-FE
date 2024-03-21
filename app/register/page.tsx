@@ -57,7 +57,7 @@ const Register = () => {
           className="border-black border-2 rounded-md placeholder:text-center"
           required
           minLength={5}
-          type="text"
+          type="password"
           placeholder="Password"
           onChange={(e) => setPassword(e.target.value)}
         ></input>

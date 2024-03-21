@@ -4,6 +4,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { ReactNode, createContext, useContext, useState } from "react";
 import Cookies from "js-cookie";
+
 type authContextType = {
   idUser: string;
   user: string;

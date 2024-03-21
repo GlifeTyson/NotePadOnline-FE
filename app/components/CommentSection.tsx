@@ -6,7 +6,8 @@ type CommentSectionProps = {
 const CommentSection = (props: CommentSectionProps) => {
   if (props.disabled === true) {
     return (
-      <div className="text-center mx-auto">
+      <div className="text-center mx-auto mt-2 w-full">
+        <span className="block w-4/5 bg-[#4682b4] h-1 mx-auto rounded-md my-2"></span>
         <h1>
           <u>Comment Section</u>
         </h1>

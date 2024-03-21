@@ -1,13 +1,15 @@
 import axios from "axios";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/authContext";
 import { useRouter } from "next/navigation";
 import MyNote from "./MyNote";
 import SharedNote from "./SharedNote";
 import CommentSection from "./CommentSection";
 import Cookies from "js-cookie";
+import SearchUser from "./SearchUser";
 
 const Note = () => {
+  const [user, setUser] = useState<any>([]);
   const [note, setNote] = useState<any>([]);
   const [sharedNote, setSharedNote] = useState<any>([]);
   const [title, setTitle] = useState<string>("");
@@ -18,7 +20,15 @@ const Note = () => {
   // const accessToken = Cookies.get("accessToken-login");
   const [disabled, setDisabled] = useState<boolean>(false);
   const [hidden, setHidden] = useState<boolean>(false);
-
+  const fetchAllUser = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/api/users");
+      console.log(res.data);
+      setUser(res.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   const createNote = async (title, content, creator) => {
     try {
       const res = await axios.post(
@@ -60,6 +70,13 @@ const Note = () => {
       console.log(error);
     }
   };
+  const filterByName = (user, setViewer, viewer) => {
+    const userSearch = user.filter((user) =>
+      user.email.toLowerCase().includes(viewer.toLowerCase())
+    );
+    setViewer(userSearch);
+    console.log(viewer);
+  };
 
   useEffect(() => {
     if (!accessToken) {
@@ -67,8 +84,12 @@ const Note = () => {
     }
     fetchNotes();
     fetchSharedNotes();
+    fetchAllUser();
     // console.log(accessToken);
   }, [accessToken]);
+
+  // console.log("viewer", viewer);
+
   return (
     <div className=" flex flex-col mt-10  text-[#10589b] w-full h-screen">
       <div className="flex flex-col justify-center items-center">
@@ -117,8 +138,9 @@ const Note = () => {
           }}
           className="w-fit bg-[#337ab7] border-[#2e6da4] text-white ml-36 mt-10 px-[6px] py-[12px] rounded-md hover:bg-[#286090]"
         >
-          Add viewer to this note
+          Add Viewer
         </button>
+        <SearchUser user={user} />
       </div>
       <CommentSection disabled={disabled} />
       <span className="block w-4/5 bg-[#4682b4] h-1 mx-auto rounded-md my-2"></span>
@@ -129,7 +151,7 @@ const Note = () => {
         setDisabled={setDisabled}
         setHidden={setHidden}
       />
-      {/* <SharedNote sharedNote={sharedNote} /> */}
+      <SharedNote sharedNote={sharedNote} />
       {/* <button
         onClick={() => {
           setDisabled(!disabled);

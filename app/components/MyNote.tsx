@@ -25,7 +25,7 @@ const MyNote: React.FC<Props> = ({
           headers: { "x-token": accessToken },
         }
       );
-      console.log(res.data);
+      // console.log(res.data);
     } catch (error) {
       console.log(error);
     }

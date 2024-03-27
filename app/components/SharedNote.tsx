@@ -4,12 +4,22 @@ import { useAuth } from "../context/authContext";
 
 interface Props {
   sharedNote: any;
-  // setTitle: React.Dispatch<React.SetStateAction<string>>;
-  // setContent: React.Dispatch<React.SetStateAction<string>>;
-  // setDisabled: React.Dispatch<React.SetStateAction<boolean>>;
+  setTitle: React.Dispatch<React.SetStateAction<string>>;
+  setContent: React.Dispatch<React.SetStateAction<string>>;
+  setDisabled: React.Dispatch<React.SetStateAction<boolean>>;
+  setToggleComment: React.Dispatch<React.SetStateAction<boolean>>;
+  setHidden: React.Dispatch<React.SetStateAction<boolean>>;
+  setDisableSaveButton: React.Dispatch<React.SetStateAction<boolean>>;
 }
-const SharedNote = ({ sharedNote }) => {
-  const [option, setOption] = useState("Default");
+const SharedNote = ({
+  sharedNote,
+  setTitle,
+  setContent,
+  setDisabled,
+  setToggleComment,
+  setHidden,
+  setDisableSaveButton,
+}) => {
   const { accessToken } = useAuth();
 
   const getNote = async () => {
@@ -30,7 +40,7 @@ const SharedNote = ({ sharedNote }) => {
           <u>Shared Notes</u>
         </h1>
         <div className="flex flex-row w-full justify-center items-center gap-10">
-          {sharedNote ? (
+          {!!sharedNote && sharedNote.length > 0 ? (
             sharedNote.map((value: any, index: number) => {
               return (
                 <div
@@ -38,36 +48,24 @@ const SharedNote = ({ sharedNote }) => {
                   key={index}
                 >
                   <a
-                    className="hover:underline text-[12px]"
-                    // href="#"
-                    onClick={(e) => {
+                    className="hover:underline text-[12px] cursor-pointer"
+                    onClick={() => {
                       getNote();
-                      // setTitle(value.title);
-                      // setContent(value.content);
-                      // setDisabled(true);
+                      setTitle(value.title);
+                      setContent(value.content);
+                      setDisabled(true);
+                      // setToggleComment(true);
+                      setHidden(false);
+                      setDisableSaveButton(true);
                     }}
                   >
                     {value.title}
                   </a>
-                  <select
-                    name="dropdown"
-                    className="w-[14px] left-10 bg-transparent rounded-sm hover:bg-[rgb(59,139,209)]"
-                  >
-                    <option value={option}>Edit</option>
-                    <option
-                      value={option}
-                      onChange={() => {
-                        setOption("Delete");
-                      }}
-                    >
-                      Delete
-                    </option>
-                  </select>
                 </div>
               );
             })
           ) : (
-            <p>Not have any shared note yet</p>
+            <p className="text-[12px]">Not have any shared note yet</p>
           )}
         </div>
       </div>

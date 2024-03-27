@@ -8,11 +8,10 @@ import { useAuth } from "../context/authContext";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
   const { login } = useAuth();
-  const handleClick = async () => {
+  const handleClick = () => {
     if (email.length == 0 || password.length == 0) {
-      return console.log("cant be null");
+      return alert("Email or password cant be null");
     }
     login(email, password);
   };
@@ -48,7 +47,9 @@ const Login = () => {
       </div>
       <br />
       <br />
-      <a href="/register">Not a member? Please sign up for free</a>
+      <a href="/register">
+        <u>Not a member? Please sign up for free</u>
+      </a>
     </div>
   );
 };

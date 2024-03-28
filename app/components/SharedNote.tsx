@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/authContext";
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
   setTitle: React.Dispatch<React.SetStateAction<string>>;
   setContent: React.Dispatch<React.SetStateAction<string>>;
   setDisabled: React.Dispatch<React.SetStateAction<boolean>>;
-  setToggleComment: React.Dispatch<React.SetStateAction<boolean>>;
+  // setToggleComment: React.Dispatch<React.SetStateAction<boolean>>;
   setHidden: React.Dispatch<React.SetStateAction<boolean>>;
   setDisableSaveButton: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -16,16 +16,30 @@ const SharedNote = ({
   setTitle,
   setContent,
   setDisabled,
-  setToggleComment,
+  // setToggleComment,
   setHidden,
   setDisableSaveButton,
 }) => {
   const { accessToken } = useAuth();
+  const [accessTokenLocal, setAccessToken] = useState<string>("");
+
+  // Function to retrieve accessToken from localStorage
+  const getAccessTokenFromLocalStorage = () => {
+    const storedToken = localStorage.getItem("accessToken");
+    if (storedToken) {
+      setAccessToken(storedToken);
+    }
+  };
+
+  // useEffect hook to run once on component mount to get accessToken from localStorage
+  useEffect(() => {
+    getAccessTokenFromLocalStorage();
+  }, []);
 
   const getNote = async () => {
     try {
       const res = await axios.get(`//localhost:3000/api/diaries/shared`, {
-        headers: { "x-token": accessToken },
+        headers: { "x-token": accessTokenLocal },
       });
       console.log(res.data);
     } catch (error) {
@@ -33,7 +47,7 @@ const SharedNote = ({
     }
   };
   return (
-    <div>
+    <div className="bg-slate-300">
       <span className="block w-4/5 bg-[#4682b4] h-1 mx-auto rounded-md my-2"></span>
       <div>
         <h1 className="text-center">

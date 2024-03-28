@@ -3,7 +3,6 @@
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { ReactNode, createContext, useContext, useState } from "react";
-import Cookies from "js-cookie";
 
 type authContextType = {
   idUser: string;
@@ -32,9 +31,9 @@ type Props = {
 };
 
 export function AuthProvider({ children }: Props) {
-  const [user, setUser] = useState<string>("");
-  const [idUser, setIdUser] = useState<string>("");
-  const [accessToken, setAccessToken] = useState<string>("");
+  let [user, setUser] = useState<string>("");
+  let [idUser, setIdUser] = useState<string>("");
+  let [accessToken, setAccessToken] = useState<string>("");
   const navigate = useRouter();
   const login = async (email: string, password: string) => {
     try {
@@ -43,18 +42,13 @@ export function AuthProvider({ children }: Props) {
         .then((res) => {
           const result = res.data.data;
           // console.log(result);
-          // setUser(result.email);
-          // setIdUser(result._id);
-          // setAccessToken(result.accessToken);
-          Cookies.set("accessToken-login", result.accessToken, { expires: 1 });
-          Cookies.set("email-login", result.email, { expires: 1 });
-          Cookies.set("id-login", result._id, { expires: 1 });
-          const userEmail = Cookies.get("email-login");
-          const userId = Cookies.get("id-login");
-          const accessToken = Cookies.get("accessToken-login");
-          setUser(userEmail);
-          setIdUser(userId);
-          setAccessToken(accessToken);
+          localStorage.setItem("email", result.email);
+          localStorage.setItem("userId", result._id);
+          localStorage.setItem("accessToken", result.accessToken);
+
+          setUser(localStorage.getItem("email"));
+          setIdUser(localStorage.getItem("userId"));
+          setAccessToken(localStorage.getItem("accessToken"));
 
           navigate.push("/");
         });
@@ -65,9 +59,7 @@ export function AuthProvider({ children }: Props) {
 
   const logout = () => {
     navigate.push("/login");
-    const userEmail = Cookies.remove("email-login");
-    const userId = Cookies.remove("id-login");
-    const accessToken = Cookies.remove("accessToken-login");
+    localStorage.clear();
   };
 
   const value = {

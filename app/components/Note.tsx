@@ -1,75 +1,67 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/authContext";
-import { useRouter } from "next/navigation";
 import MyNote from "./MyNote";
 import SharedNote from "./SharedNote";
 import SearchUser from "./SearchUser";
+import { FaSearch } from "react-icons/fa";
 
 const Note = () => {
   const [user, setUser] = useState<any>([]);
+  const [userFind, setUserFind] = useState<any>([]);
+
   const [note, setNote] = useState<any>([]);
   const [sharedNote, setSharedNote] = useState<any>([]);
-  const [comment, setComment] = useState<string>("");
+  // const [comment, setComment] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [disabled, setDisabled] = useState<boolean>(false);
   const [hidden, setHidden] = useState<boolean>(false);
   const [noteId, setNoteId] = useState<string>("");
+  const [viewers, setViewers] = useState<any>([]);
   const [toggleComment, setToggleComment] = useState<boolean>(false);
+  const [toggleSearch, setToggleSearch] = useState<boolean>(false);
+
   const [disableSaveButton, setDisableSaveButton] = useState<boolean>(false);
+  const [accessTokenLocal, setAccessToken] = useState<string>("");
+  const [userId, setUserId] = useState<string>("");
+  // Function to retrieve accessToken from localStorage
+  const getDataFromLocalStorage = () => {
+    const storedToken = localStorage.getItem("accessToken");
+    const userId = localStorage.getItem("userId");
+    if (storedToken) {
+      setAccessToken(storedToken);
+      setUserId(userId);
+    }
+  };
 
-  const navigate = useRouter();
-
+  // useEffect hook to run once on component mount to get accessToken from localStorage
+  useEffect(() => {
+    getDataFromLocalStorage();
+  }, []);
   const { idUser, accessToken } = useAuth();
 
   const fetchAllUser = async () => {
     try {
       const res = await axios.get("http://localhost:3000/api/users");
-      // console.log(res.data);
       setUser(res.data);
     } catch (error) {
       console.log(error);
     }
   };
-  const fetchNotes = async () => {
-    try {
-      const res = await axios.get("//localhost:3000/api/diaries/", {
-        headers: { "x-token": accessToken },
-      });
-      setNote(res.data);
-      // console.log(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const fetchSharedNotes = async () => {
-    try {
-      const res = await axios.get("//localhost:3000/api/diaries/shared", {
-        headers: { "x-token": accessToken },
-      });
-      setSharedNote(res.data);
-      // console.table(res.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  const createNote = async (
-    title: string,
-    content: string,
-    creator: string
-  ) => {
+
+  const createNote = async (title: string, content: string) => {
     try {
       const res = await axios.post(
         "//localhost:3000/api/diaries",
         {
           title,
           content,
-          creator,
         },
-        { headers: { "x-token": accessToken } }
+        { headers: { "x-token": accessToken ? accessToken : accessTokenLocal } }
       );
       alert(res.data.message);
+      window.location.reload();
       setTitle("");
       setContent("");
     } catch (error) {
@@ -77,9 +69,6 @@ const Note = () => {
     }
   };
   const editNote = async (title: string, content: string, idDiary: string) => {
-    console.log(title);
-    console.log(content);
-    console.log(idDiary);
     try {
       const res = await axios.patch(
         `//localhost:3000/api/diaries/${idDiary}`,
@@ -88,10 +77,11 @@ const Note = () => {
           content: content,
         },
         {
-          headers: { "x-token": accessToken },
+          headers: { "x-token": accessToken ? accessToken : accessTokenLocal },
         }
       );
-      return alert(res.data.message);
+      alert(res.data.message);
+      window.location.reload();
     } catch (error) {
       console.log(error.message);
     }
@@ -99,23 +89,69 @@ const Note = () => {
   const deleteNote = async (noteId: string) => {
     try {
       const res = await axios.delete(`//localhost:3000/api/diaries/${noteId}`, {
-        headers: { "x-token": accessToken },
+        headers: { "x-token": accessToken ? accessToken : accessTokenLocal },
       });
-      return alert(res.data.message);
+      alert(res.data.message);
+      window.location.reload();
     } catch (error) {
       console.log(error.message);
     }
   };
 
   useEffect(() => {
-    if (!accessToken) {
-      return navigate.push("/login");
-    }
+    const fetchNotes = async () => {
+      try {
+        const res = await axios.get("//localhost:3000/api/diaries/", {
+          headers: { "x-token": accessToken ? accessToken : accessTokenLocal },
+        });
+        setNote(res.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
     fetchNotes();
+    const fetchSharedNotes = async () => {
+      try {
+        const res = await axios.get("//localhost:3000/api/diaries/shared", {
+          headers: { "x-token": accessToken ? accessToken : accessTokenLocal },
+        });
+        setSharedNote(res.data);
+        // console.table(res.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
     fetchSharedNotes();
     fetchAllUser();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accessToken]);
+  }, [accessToken, accessTokenLocal]);
+  useEffect(() => {
+    if (userId && user.length > 0) {
+      // get all the viewerID by mapping into viewer
+      const viewerIds = (viewers || []).map((viewer: any) => viewer.id);
+
+      const result = (user || []).reduce(
+        //intiliaze userList, currentUser
+        (userList: any[], currentUser: any) => {
+          if (
+            //check if (currentUser is login == userID and check if current user is viewer by compare ID )
+            currentUser._id === userId ||
+            viewerIds.includes(currentUser._id)
+          ) {
+            return userList;
+          } else {
+            return [
+              ...userList,
+              { name: currentUser.name, id: currentUser._id },
+            ];
+          }
+        },
+        //initial value for reduce is []
+        []
+      );
+      setUserFind(result);
+      // console.log("removeCreatorFromUser:", userFind);
+    }
+  }, [userId, user, viewers]); // useEffect to handle filtering when userId or user changes
 
   return (
     <div className=" flex flex-col mt-10  text-[#10589b] w-full h-screen">
@@ -155,23 +191,18 @@ const Note = () => {
           required
           value={content}
           onChange={(e) => setContent(e.target.value)}
-        ></textarea>
+        />
       </div>
-      {/* <CommentSection
-        noteId={noteId}
-        setComment={setComment}
-        disabled={toggleComment}
-      /> */}
-      <div className="flex flex-row justify-center items-center gap-10">
+      <div className="w-full h-fit flex flex-row justify-center items-center px-24 py-10">
         <button
-          hidden={hidden}
+          hidden={hidden || disabled}
           onClick={() => {
             if (disableSaveButton == true) {
               return alert("Button have been disable");
             }
-            createNote(title, content, idUser);
+            createNote(title, content);
           }}
-          className="w-20 bg-[#337ab7] border-[#2e6da4] text-white ml-36 mt-10 px-[6px] py-[12px] rounded-md hover:bg-[#286090]"
+          className="w-36 h-12 bg-[#337ab7] border-[#2e6da4] text-white m-auto rounded-md hover:bg-[#286090]"
         >
           Save
         </button>
@@ -180,7 +211,7 @@ const Note = () => {
           onClick={() => {
             editNote(title, content, noteId);
           }}
-          className="w-20 bg-[#337ab7] border-[#2e6da4] text-white ml-36 mt-10 px-[6px] py-[12px] rounded-md hover:bg-[#286090]"
+          className="w-20 h-12 bg-[#337ab7] border-[#2e6da4] text-white m-auto  rounded-md hover:bg-[#286090]"
         >
           Edit
         </button>
@@ -189,15 +220,31 @@ const Note = () => {
           onClick={() => {
             deleteNote(noteId);
           }}
-          className="w-20 bg-[#337ab7] border-[#2e6da4] text-white mt-10 py-[12px] rounded-md hover:bg-[#286090]"
+          className="w-20 h-12 bg-[#337ab7] border-[#2e6da4] text-white m-auto rounded-md hover:bg-[#286090]"
         >
           Delete
         </button>
-        {hidden && <SearchUser user={user} noteId={noteId} />}
+        {hidden && (
+          <div className="w-20 h-12 flex justify-center items-center">
+            <FaSearch
+              className="cursor-pointer w-1/2 h-1/2 m-auto"
+              onClick={() => {
+                setToggleSearch(!toggleSearch);
+              }}
+            />
+          </div>
+        )}
+        {toggleSearch && (
+          <SearchUser
+            user={userFind}
+            noteId={noteId}
+            accessTokenLocal={accessTokenLocal}
+          />
+        )}
 
         <button
           onClick={() => setToggleComment(!toggleComment)}
-          className="w-fit h-12 bg-[#337ab7] border-[#2e6da4] text-white mr-36 mt-10 py-[12px] rounded-md hover:bg-[#286090]"
+          className="w-36 h-12 bg-[#337ab7] border-[#2e6da4] text-white text-center m-auto rounded-md hover:bg-[#286090]"
         >
           Show Comments
         </button>
@@ -213,6 +260,7 @@ const Note = () => {
         setNoteId={setNoteId}
         toggleComment={toggleComment}
         setDisableSaveButton={setDisableSaveButton}
+        setViewers={setViewers}
       />
 
       <SharedNote
@@ -220,7 +268,7 @@ const Note = () => {
         setContent={setContent}
         setTitle={setTitle}
         setDisabled={setDisabled}
-        setToggleComment={setToggleComment}
+        // setToggleComment={setToggleComment}
         setHidden={setHidden}
         setDisableSaveButton={setDisableSaveButton}
       />

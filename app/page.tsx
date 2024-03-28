@@ -7,7 +7,7 @@ import Note from "./components/Note";
 
 export default function Home() {
   return (
-    <div className="bg-slate-300 h-full">
+    <div className="bg-slate-300">
       <Navbar />
       <Note />
     </div>

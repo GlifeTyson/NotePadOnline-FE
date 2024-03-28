@@ -1,13 +1,25 @@
 import Link from "next/link";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/authContext";
 import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 const Navbar = () => {
-  const { user, logout } = useAuth();
-  let email = Cookies.get("email-login");
+  const { logout } = useAuth();
+  const [user, setUser] = useState<string>("");
+  const navigate = useRouter();
   const handleLogout = () => {
     logout();
   };
+
+  useEffect(() => {
+    const emailUser = localStorage.getItem("email");
+    const accessToken = localStorage.getItem("accessToken");
+    if (!emailUser || !accessToken) {
+      return navigate.push("/login");
+    } else {
+      setUser(emailUser);
+    }
+  }, [navigate]);
   return (
     <div className="flex w-full h-10 bg-[#4682b4] text-white justify-between px-10 items-center">
       <div>

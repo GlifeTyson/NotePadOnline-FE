@@ -1,32 +1,52 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/authContext";
+import { useRouter } from "next/navigation";
 interface CommentSectionProps {
   toggleComment: boolean;
   noteId: string;
   comment: any;
 }
 export const CommentSection = ({ toggleComment, noteId, comment }) => {
-  const { accessToken } = useAuth();
   const [content, setContent] = useState<any>([]);
-  const [idNote, setIdNote] = useState<string>("");
-  const createComment = async (noteId: string) => {
-    try {
-      setIdNote(noteId);
-      const res = await axios.post(
-        `//localhost:3000/api/comments/${idNote}`,
-        { content: content },
-        { headers: { "x-token": accessToken } }
-      );
-      console.log(res.data.data);
-    } catch (error) {
-      console.log(error);
+  const [accessTokenLocal, setAccessToken] = useState<string>("");
+
+  // Function to retrieve accessToken from localStorage
+  const getAccessTokenFromLocalStorage = () => {
+    const storedToken = localStorage.getItem("accessToken");
+    if (storedToken) {
+      setAccessToken(storedToken);
     }
+  };
+
+  // useEffect hook to run once on component mount to get accessToken from localStorage
+  useEffect(() => {
+    getAccessTokenFromLocalStorage();
+  }, []);
+  const createComment = async (noteId: string) => {
+    // alert(accessToken);
+    console.log("Note id:", noteId);
+    console.log("accessToken:", accessTokenLocal);
+    if (!noteId) {
+      return alert("Please choose a note to comment");
+    }
+    // try {
+    //   setIdNote(noteId);
+    //   const res = await axios.post(
+    //     `//localhost:3000/api/comments/${idNote}`,
+    //     { content: content },
+    //     { headers: { "x-token": accessToken } }
+    //   );
+    //   // console.log(res.data.data);
+    //   alert(res.data.data.message);
+    // } catch (error) {
+    //   alert(error.message);
+    // }
   };
 
   if (toggleComment === true) {
     return (
-      <div>
+      <div className="bg-slate-300">
         <span className="block w-4/5 bg-[#4682b4] h-1 mx-auto rounded-md my-2"></span>
         <div>
           <h1 className="text-center">
@@ -34,14 +54,21 @@ export const CommentSection = ({ toggleComment, noteId, comment }) => {
           </h1>
         </div>
         <div className="flex flex-col items-center">
-          {/* {<p>{content}</p>} */}
           {!!comment && comment.length > 0 ? (
-            <p>Have comment</p>
+            comment.map((value, index) => {
+              return (
+                <div className="flex flex-row gap-2" key={index}>
+                  <p>{index + 1}.</p>
+                  <p>{value.creator}</p>
+                  <p>{value.content.toLowerCase()}</p>
+                </div>
+              );
+            })
           ) : (
-            <p>Not have comment</p>
+            <p>This note doesnt have comment</p>
           )}
           <input
-            className="w-[150px] rounded-md"
+            className="w-[200px] rounded-md"
             value={content}
             onChange={(e) => setContent(e.target.value)}
           ></input>
@@ -50,8 +77,8 @@ export const CommentSection = ({ toggleComment, noteId, comment }) => {
               if (content.length == 0) {
                 return alert("Please fill in comment");
               } else {
-                console.log("noteId:", noteId);
-                // createComment(noteId);
+                // console.log("noteId:", noteId);
+                createComment(noteId);
               }
             }}
             className="w-fit bg-[#337ab7] border-[#2e6da4] text-white rounded-md hover:bg-[#286090] text-right"
@@ -74,6 +101,7 @@ interface Props {
   noteId: any;
   toggleComment: boolean;
   setDisableSaveButton: React.Dispatch<React.SetStateAction<boolean>>;
+  setViewers: React.Dispatch<React.SetStateAction<any>>;
 }
 const MyNote: React.FC<Props> = ({
   note,
@@ -85,27 +113,30 @@ const MyNote: React.FC<Props> = ({
   setHidden,
   setNoteId,
   setDisableSaveButton,
+  setViewers,
   // setComment,
 }) => {
-  const { accessToken } = useAuth();
   const [comment, setComment] = useState<any>([]);
-  const getNote = async (noteElement: any) => {
-    try {
-      const res = await axios.get(
-        `//localhost:3000/api/diaries/${noteElement._id}`,
-        {
-          headers: { "x-token": accessToken },
-        }
-      );
-      console.log(res.data);
-    } catch (error) {
-      console.log(error);
+  const [accessTokenLocal, setAccessToken] = useState<string>("");
+  // const [textColor, setTextColor] = useState<string>("");
+  const [colorIndex, setColorIndex] = useState(-1);
+  // Function to retrieve accessToken from localStorage
+  const getAccessTokenFromLocalStorage = () => {
+    const storedToken = localStorage.getItem("accessToken");
+    if (storedToken) {
+      setAccessToken(storedToken);
     }
   };
+  // useEffect hook to run once on component mount to get accessToken from localStorage
+  useEffect(() => {
+    getAccessTokenFromLocalStorage();
+  }, []);
+
+  const navigate = useRouter();
 
   const fetchCommentByUser = async (id) => {
     try {
-      alert(id);
+      // alert(id);
       const res = await axios.get("//localhost:3000/api/comments", {
         params: {
           offset: 0,
@@ -113,22 +144,26 @@ const MyNote: React.FC<Props> = ({
           orderBy: "createdAt_DESC",
           filter: `{"diaryId":"${id}"}`,
         },
-        headers: { "x-token": accessToken },
+        headers: { "x-token": accessTokenLocal },
       });
+      const result = res.data.data;
+      // console.log(result.comments);
       setComment(res.data.data.comments);
-      if (comment.length > 0) {
-        alert("Have comment");
-      }
-      return alert("Not have any comment");
-      // // setComment(res.data[0].content);
-      console.log(res.data.data.comments);
     } catch (error) {
       console.log(error);
     }
   };
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      return navigate.push("/login");
+    } else {
+      setAccessToken(accessToken);
+    }
+  }, [navigate]);
 
   return (
-    <div>
+    <div className="bg-slate-300">
       <CommentSection
         toggleComment={toggleComment}
         noteId={noteId}
@@ -147,8 +182,13 @@ const MyNote: React.FC<Props> = ({
                 key={index}
               >
                 <a
-                  className="hover:underline text-[12px] cursor-pointer"
+                  className={
+                    index !== colorIndex
+                      ? "underline text-[12px] cursor-pointer"
+                      : "underline text-[12px] cursor-pointer bg-white"
+                  }
                   onClick={() => {
+                    setColorIndex(index);
                     setTitle(value.title);
                     setContent(value.content);
                     setDisabled(false);
@@ -156,6 +196,7 @@ const MyNote: React.FC<Props> = ({
                     fetchCommentByUser(value._id);
                     setNoteId(value._id);
                     setDisableSaveButton(false);
+                    setViewers(value.viewers);
                   }}
                 >
                   {value.title}
@@ -164,7 +205,7 @@ const MyNote: React.FC<Props> = ({
             );
           })
         ) : (
-          <p>Not have any note yet</p>
+          <p className="text-[12px]">Not have any note yet</p>
         )}
       </div>
     </div>

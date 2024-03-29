@@ -25,13 +25,18 @@ const Navbar = () => {
       <div>
         <a href="/">NotePadOnline</a>
       </div>
-      <div>
+      <div className="h-full flex items-center">
         <ul className="flex justify-center gap-8">
           {user ? (
             <>
               <li>Email: {user}</li>
               <li>
-                <button onClick={() => handleLogout()}>Log Out</button>
+                <button
+                  className="w-20 h-full text-white rounded-md hover:bg-[#286090]"
+                  onClick={() => handleLogout()}
+                >
+                  Log Out
+                </button>
               </li>
             </>
           ) : (

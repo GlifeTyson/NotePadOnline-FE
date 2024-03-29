@@ -5,18 +5,20 @@ import MyNote from "./MyNote";
 import SharedNote from "./SharedNote";
 import SearchUser from "./SearchUser";
 import { FaSearch } from "react-icons/fa";
+// import CommentSection from "./CommentSection";
+import ParentComponent from "./ParentNoteComponent";
 
 const Note = () => {
   const [user, setUser] = useState<any>([]);
   const [userFind, setUserFind] = useState<any>([]);
 
-  const [note, setNote] = useState<any>([]);
-  const [sharedNote, setSharedNote] = useState<any>([]);
-  // const [comment, setComment] = useState<string>("");
+  const [notes, setNotes] = useState<any>([]);
+  const [sharedNotes, setSharedNotes] = useState<any>([]);
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [disabled, setDisabled] = useState<boolean>(false);
   const [hidden, setHidden] = useState<boolean>(false);
+  const [comments, setComments] = useState<any>([]);
   const [noteId, setNoteId] = useState<string>("");
   const [viewers, setViewers] = useState<any>([]);
   const [toggleComment, setToggleComment] = useState<boolean>(false);
@@ -104,7 +106,7 @@ const Note = () => {
         const res = await axios.get("//localhost:3000/api/diaries/", {
           headers: { "x-token": accessToken ? accessToken : accessTokenLocal },
         });
-        setNote(res.data);
+        setNotes(res.data);
       } catch (error) {
         console.log(error);
       }
@@ -115,7 +117,7 @@ const Note = () => {
         const res = await axios.get("//localhost:3000/api/diaries/shared", {
           headers: { "x-token": accessToken ? accessToken : accessTokenLocal },
         });
-        setSharedNote(res.data);
+        setSharedNotes(res.data);
         // console.table(res.data);
       } catch (error) {
         console.log(error);
@@ -149,7 +151,7 @@ const Note = () => {
         []
       );
       setUserFind(result);
-      // console.log("removeCreatorFromUser:", userFind);
+      // console.log(result);
     }
   }, [userId, user, viewers]); // useEffect to handle filtering when userId or user changes
 
@@ -225,33 +227,54 @@ const Note = () => {
           Delete
         </button>
         {hidden && (
-          <div className="w-20 h-12 flex justify-center items-center">
-            <FaSearch
-              className="cursor-pointer w-1/2 h-1/2 m-auto"
-              onClick={() => {
-                setToggleSearch(!toggleSearch);
-              }}
-            />
-          </div>
+          <button
+            onClick={() => {
+              setToggleSearch(!toggleSearch);
+            }}
+            className="w-20 h-12 cursor-pointer m-auto flex justify-center items-center rounded-md border-[#2e6da4] border-2 hover:bg-[#4386c1]"
+          >
+            <FaSearch />
+          </button>
         )}
         {toggleSearch && (
           <SearchUser
-            user={userFind}
+            userFind={userFind}
             noteId={noteId}
             accessTokenLocal={accessTokenLocal}
           />
         )}
 
         <button
-          onClick={() => setToggleComment(!toggleComment)}
+          onClick={() => {
+            setToggleComment(!toggleComment);
+          }}
           className="w-36 h-12 bg-[#337ab7] border-[#2e6da4] text-white text-center m-auto rounded-md hover:bg-[#286090]"
         >
           Show Comments
         </button>
       </div>
-
+      <ParentComponent
+        noteId={noteId}
+        comment={comments}
+        toggleComment={toggleComment}
+        sharedNotes={sharedNotes}
+        notes={notes}
+        setTitle={setTitle}
+        setContent={setContent}
+        setDisabled={setDisabled}
+        setHidden={setHidden}
+        setNoteId={setNoteId}
+        setDisableSaveButton={setDisableSaveButton}
+        setViewers={setViewers}
+        setToggleSearch={setToggleSearch}
+      />
+      {/* <CommentSection
+        toggleComment={toggleComment}
+        noteId={noteId}
+        // comments={comments}
+      />
       <MyNote
-        note={note}
+        notes={notes}
         noteId={noteId}
         setTitle={setTitle}
         setContent={setContent}
@@ -261,17 +284,19 @@ const Note = () => {
         toggleComment={toggleComment}
         setDisableSaveButton={setDisableSaveButton}
         setViewers={setViewers}
+        setComments={setComments}
       />
 
       <SharedNote
-        sharedNote={sharedNote}
+        setComments={setComments}
+        sharedNotes={sharedNotes}
         setContent={setContent}
         setTitle={setTitle}
         setDisabled={setDisabled}
-        // setToggleComment={setToggleComment}
+        setToggleSearch={setToggleSearch}
         setHidden={setHidden}
         setDisableSaveButton={setDisableSaveButton}
-      />
+      /> */}
     </div>
   );
 };

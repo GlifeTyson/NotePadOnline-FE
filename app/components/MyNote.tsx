@@ -113,8 +113,8 @@ const MyNote: React.FC<MyNoteProps> = ({
                 <a
                   className={
                     !selected || index !== colorIndex
-                      ? "underline text-[12px] cursor-pointer"
-                      : "text-[12px] cursor-pointer bg-white"
+                      ? "text-sm cursor-pointer"
+                      : "underline text-sm cursor-pointer "
                   }
                   onClick={() => {
                     fetchCommentByUser(
